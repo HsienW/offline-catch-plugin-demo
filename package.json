@@ -1,0 +1,18 @@
+{
+  "name": "offline-catch-plugin",
+  "version": "1.0.0",
+  "description": "offline-catch-plugin",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "lib"
+  ],
+  "dependencies": {
+    "jszip": "3.2.2",
+    "lodash": "4.17.15",
+    "mime-types": "2.1.25",
+    "webpack-sources": "1.4.3"
+  },
+  "author": "Hsien",
+  "license": "ISC"
+}
