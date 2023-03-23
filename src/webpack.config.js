@@ -1,6 +1,6 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
-const OfflinePackage = require('../plugin/plugin');
+const OfflineCtachPackage = require('../plugin/plugin');
 const path = require('path');
 
 module.exports = {
@@ -47,12 +47,13 @@ module.exports = {
         new CompressionPlugin({
             test: /\.js(\?.*)?$/i
         }),
-        new OfflinePackage({
+        new OfflineCtachPackage({
             packageNameKey: 'packageId',
             packageNameValue: 'meeting',
             version: 1,
-            baseUrl: 'http://192.168.88.88:5000/',
-            fileTypes: ['html', 'js', 'css', 'png']
+            baseUrl: 'http://localhost:8080/',
+            fileTypes: ['html', 'js', 'css', 'png'],
+            folderName: 'package'
         })
     ],
 };

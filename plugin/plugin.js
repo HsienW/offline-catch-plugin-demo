@@ -23,17 +23,95 @@ const OfflineCatchPlugin = function (options) {
         },
         options
     );
-}
 
-OfflineCatchPlugin.prototype.apply = function (compiler) {
-    compiler.hooks.emit.tapAsync(
-        'OfflineCatchPlugin',
-        (compilation, callback) => {
-            console.log('========== OfflineCatchPlugin ==========');
-            console.log(compilation);
-            callback();
+    this.getFileType = function (str) {
+        str = str.replace(/\?.*/, '');
+        const split = str.split('.');
+        let ext = split.pop();
+        if (this.options.transformExtensions.test(ext)) {
+            ext = split.pop() + '.' + ext;
         }
-    );
+        return ext;
+    }
+
+    this.apply = function (compiler) {
+        compiler.hooks.emit.tapAsync(
+            'OfflineCatchPlugin',
+            (compilation, callback) => {
+                console.log('========== OfflineCatchPlugin ==========');
+
+                const isFileTypeLimit = this.options.fileTypes.length > 0;
+
+                // create index.json
+                const content = {
+                    [this.options.packageNameKey]: this.options.packageNameValue,
+                    version: this.options.version,
+                    items: []
+                };
+
+                for (const filename in compilation.assets) {
+                    const fileType = this.getFileType(filename);
+
+                    if (this.options.excludeFileName.includes(filename)) {
+                        continue;
+                    }
+
+                    if (isFileTypeLimit && !this.options.fileTypes.includes(fileType)) {
+                        continue;
+                    }
+
+                    content.items.push({
+                        [this.options.packageNameKey]: this.options.packageNameValue,
+                        version: this.options.version,
+                        remoteUrl: this.options.baseUrl + filename,
+                        path: filename,
+                        mimeType: mime.lookup(fileType)
+                    });
+                }
+
+                const outputFile = this.options.serialize(content);
+                compilation.assets[this.options.indexFileName] = {
+                    source: () => {
+                        return outputFile;
+                    },
+                    size: () => {
+                        return outputFile.length;
+                    }
+                };
+
+                // create zip file
+                const file = zip.folder(this.options.folderName);
+
+                for (const filename in compilation.assets) {
+                    const fileType = this.getFileType(filename);
+
+                    if (this.options.excludeFileName.includes(filename)) {
+                        continue;
+                    }
+
+                    if (isFileTypeLimit && !this.options.fileTypes.includes(fileType)
+                        && filename !== this.options.indexFileName
+                    ) {
+                        continue;
+                    }
+
+                    const source = compilation.assets[filename].source();
+                    file.file(filename, source);
+                }
+
+                zip.generateAsync({
+                    type: 'nodebuffer',
+                    streamFiles: true,
+                    compression: 'DEFLATE',
+                    compressionOptions: {level: 9}
+                }).then((content) => {
+                    const outputPath = this.options.folderName + '.zip';
+                    compilation.assets[outputPath] = new RawSource(content);
+                    callback();
+                });
+            }
+        );
+    }
 }
 
 module.exports = OfflineCatchPlugin;
