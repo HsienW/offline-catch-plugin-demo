@@ -1,6 +1,6 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
-const OfflineCtachPackage = require('../plugin/plugin');
+const OfflineCatchPackage = require('../plugin/plugin');
 const path = require('path');
 
 module.exports = {
@@ -47,7 +47,7 @@ module.exports = {
         new CompressionPlugin({
             test: /\.js(\?.*)?$/i
         }),
-        new OfflineCtachPackage({
+        new OfflineCatchPackage({
             packageNameKey: 'packageId',
             packageNameValue: 'meeting',
             version: 1,
